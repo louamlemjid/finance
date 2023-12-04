@@ -19,7 +19,7 @@ const compteEpargneschema=new mongoose.Schema({
     solde:Number
 });
 const Operation=mongoose.model('Operation',compteEpargneschema);
-var table=[];
+const months = ["Jan", "Fev", "Mar", "Avr", "Mai", "Jun", "Jul", "Aout", "Sep", "Oct", "Nov", "Dec"];
 app.use(express.static("public"));
 const db = mongoose.connection;
 var test=false;
@@ -28,9 +28,11 @@ var test=false;
 function Solde(array,date){
     var s=0;
     
-    if (array.length!=0){
-        console.log(array.length)
+    if (array.length>1){
+        
         var j=0;
+        console.log(array.length,date,array[j].dateValeur)
+        console.log(date>=array[j].dateValeur && j<array.length-1)
         while (date>=array[j].dateValeur && j<array.length-1){
             console.log(s,array[j].operationDebit,array[j].operationCredit)
             s+=array[j].operationDebit+array[j].operationCredit;
@@ -39,8 +41,13 @@ function Solde(array,date){
             
         }
         console.log("j est : ",j)
-        s+=array[j].operationDebit+array[j].operationCredit;
+        if (j!=0){s+=array[j].operationDebit+array[j].operationCredit;};
+        
+    }else{
+        if(array.length==0){return s}
+        if(array.length==1){s+=array[0].operationDebit+array[0].operationCredit;}
     }
+
     
     return s
 }
@@ -56,7 +63,7 @@ function Debit(joursBanque){
     let day2=date.getDate();
     let month2=date.getMonth()+1;
     let year2=date.getFullYear();
-    let dateE=month2+"/"+day2+"/"+year2;
+    let dateE=new Date(month2+"-"+day2+"-"+year2);
     return dateE;
 }
 //renvoie la date valeur crediteur
@@ -71,7 +78,7 @@ function Credit(joursBanque){
     let day2=date.getDate();
     let month2=date.getMonth()+1;
     let year2=date.getFullYear();
-    let dateE=month2+"/"+day2+"/"+year2;
+    let dateE=new Date(month2+"-"+day2+"-"+year2);
     return dateE;
 }
 //calcul de nombre de jour
@@ -106,7 +113,7 @@ db.once('open', async function () {
             var input=Number(req.body.operation);
             var taux=Number(req.body.taux);
             var nbJoursBanque=Number(req.body.nbjours)
-            console.log(typeof(input))
+            
             
             if (input>=0){
                 Operation.find().sort( { dateValeur: 1 } ).then((data) => {
@@ -163,7 +170,7 @@ db.once('open', async function () {
         
         app.get('/',function(req,res){
             Operation.find().sort( { dateValeur: 1 } ).then((data) => {
-                res.render("admin",{list:data,testing:test})
+                res.render("admin",{list:data,testing:test,Mon:months})
             })
             
             
