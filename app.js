@@ -132,18 +132,22 @@ db.once('open', async function () {
     
     
     try {
+        // const result= await Banque.updateMany({ date: { $gt: new Date("2023-10-01T00:00:00.000Z") }},{$set: {impot:100,jrbanque:6}});
+        // console.log(`${result.matchedCount} , ${result.modifiedCount}`)
         app.post("/bank",function(req,res){
             var nbJoursBanque=Number(req.body.nbjours);
             var dateTaux=req.body.moisTaux
+            var dateTaux1=req.body.moisTauxFin;
             var taux=Number(req.body.taux)
             var taxImpot=Number(req.body.impot)
-            var enregistrementBanque= new Banque({
-                date:dateTaux,
-                taux:taux,
-                jrbanque:nbJoursBanque,
-                impot:taxImpot
-            })
-            enregistrementBanque.save()
+            
+           
+            const filter={ date: { $gt: new Date(dateTaux),$lt:new Date(dateTaux1) }};
+            Banque.updateMany(filter,{$set: {impot:taxImpot,jrbanque:nbJoursBanque,taux:taux}},{upsert:true}).then((datax) =>{
+                Banque.updateOne({_id:datax.upsertedId},{date:dateTaux1}).then(d=>{console.log(d)})
+            });
+            // Banque.updateOne{}
+            // console.log(result.modifiedCount)
             res.redirect("/bank");
         })
         app.post("/admin",function(req,res){
